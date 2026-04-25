@@ -5,115 +5,92 @@ description: Find MCP (Model Context Protocol) servers. Use when user asks "find
 
 # Skill: MCP Finder
 
-Find MCP servers from the awesome-mcp-servers collection.
+Find MCP servers from the awesome-mcp-servers collection and glama.ai catalog.
 
-## When to Use This Skill
+**Fast path**: Check `reference/top-servers.md` first. If the user's domain matches a listed server, use that directly — no search needed.
+
+## When to Use
 
 - User asks "find MCP server for X"
-- User needs external tools for their AI agent
+- User needs external tools for their AI agent (browser, database, files, search)
 - User wants to know what MCP servers exist
 - User is building an AI agent and needs tool access
+- User asks how to give Claude access to GitHub / Postgres / web browsing
 
-## Available MCP Servers
+## When NOT to Use
 
-**Main source**: https://github.com/punkpeye/awesome-mcp-servers
-**Alternative**: https://glama.ai/mcp/servers
+- User needs agent instructions or how-to knowledge — use `skill-finder` instead
+- User already knows the MCP package and just needs an install command
+- User is asking about agent behaviors, not tool access
+- Task is purely in-context reasoning with no external system access needed
 
-## Usage
+## Workflow
 
-### Browse glama.ai (Recommended)
+### Step 1: Fast-path lookup
 
-Visit https://glama.ai/mcp/servers - searchable catalog with:
-- Server descriptions
-- Transport types (stdio, SSE)
-- Environment variables needed
+Check `reference/top-servers.md`. If the user's domain matches, present that server directly.
 
-### Search via GitHub
+### Step 2: Search the catalog
 
+Browse https://glama.ai/mcp/servers — searchable with filters for transport type, env vars, and category.
+
+Or grep the community list:
 ```bash
 curl -s https://raw.githubusercontent.com/punkpeye/awesome-mcp-servers/main/README.md | grep -i "keyword"
 ```
 
-## Common Categories
+### Step 3: Handle no results
 
-| Category | MCP Server |
-|----------|-----------|
-| Database | @modelcontextprotocol/server-postgres |
-| Files | @modelcontextprotocol/server-filesystem |
-| GitHub | @modelcontextprotocol/server-github |
-| Web Search | @modelcontextprotocol/server-brave-search |
-| Browser | @anthropic/mcp-server-puppeteer |
-| Memory | @modelcontextprotocol/server-memory |
+If glama.ai is unreachable or returns nothing:
+1. Try a different keyword (e.g. `"browser"` instead of `"chrome"`)
+2. Check `reference/top-servers.md` for the closest match
+3. Search npm directly: `npm search mcp-server-[keyword]`
 
-## Workflow
+### Step 4: Present results
 
-1. User describes what they need
-2. Map to MCP category keyword
-3. Search on glama.ai or awesome-mcp-servers
-4. Present results with:
-   - Server name and npm package
-   - Transport type
-   - Required env vars
+Show results with:
+- Server name and npm package
+- Transport type (`stdio` = local, `SSE` = remote)
+- Required environment variables (critical — note if API key needed)
 
-## Setup Example
-
-```bash
-# Install
-npm install -g @modelcontextprotocol/server-filesystem
-
-# Add to MCP config
-{
-  "mcpServers": {
-    "filesystem": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem"]
-    }
-  }
-}
-```
-
-## Notes
-
-- MCP servers provide TOOLS to AI agents
-- Skills provide INSTRUCTIONS (how-to use tools)
-- Many require API keys (check env vars)
-- stdio = local, SSE = remote
-
-## Check & Install MCP Servers
-
-### Verify Installation
-
-```bash
-npm list -g <package-name>
-```
-
-### Install MCP Server
+### Step 5: Install
 
 ```bash
 npm install -g <package-name>
 ```
 
-### Check Available Tools
+### Step 6: Verify installation
 
-The MCP config is typically in:
-- Windows: `%APPDATA%\Code\default\user\mcp.json`
-- macOS: `~/Library/Application Support/Code/User/mcp.json`
-- Linux: `~/.config/Code/User/mcp.json`
-
-### Quick Install & Test
+Always verify before asking user to update their config:
 
 ```bash
-# Install puppeteer for browser automation
-npm install -g @anthropic/mcp-server-puppeteer
-
-# Verify it's installed
-npm list -g @anthropic/mcp-server-puppeteer
+npm list -g <package-name>
+# Expected: <package-name>@<version>
 ```
 
-### MCP Server Status Check Script
+If it fails: `npm install -g <package-name> --force`
 
-```bash
-# Check all common MCP dependencies
+### Step 7: Add to MCP config
+
+```json
+{
+  "mcpServers": {
+    "server-name": {
+      "command": "npx",
+      "args": ["-y", "<package-name>"]
+    }
+  }
+}
+```
+
+MCP config file locations:
+- **Windows**: `%APPDATA%\Code\User\mcp.json`
+- **macOS**: `~/Library/Application Support/Code/User/mcp.json`
+- **Linux**: `~/.config/Code/User/mcp.json`
+
+## Verify Multiple Packages (PowerShell)
+
+```powershell
 $packages = @("playwright", "puppeteer", "@anthropic/mcp-server-puppeteer")
 foreach ($pkg in $packages) {
     $result = npm list -g $pkg 2>$null
@@ -122,42 +99,9 @@ foreach ($pkg in $packages) {
 }
 ```
 
-## MCP Server Categories
+## Notes
 
-### Browser Automation
-
-| Package | Purpose | Env Vars |
-|---------|---------|---------|
-| @anthropic/mcp-server-puppeteer | Chrome automation | None |
-| @modelcontextprotocol/server-playwright | Playwright browser | None |
-
-### Database
-
-| Package | Purpose | Env Vars |
-|---------|---------|---------|
-| @modelcontextprotocol/server-postgres | PostgreSQL | DATABASE_URL |
-| @modelcontextprotocol/server-sqlite | SQLite | DATABASE_PATH |
-
-### Search & Web
-
-| Package | Purpose | Env Vars |
-|---------|---------|---------|
-| @modelcontextprotocol/server-brave-search | Brave Web Search | BRAVE_API_KEY |
-| @modelcontextprotocol/server-fetch | HTTP requests | None |
-
-### Development
-
-| Package | Purpose | Env Vars |
-|---------|---------|---------|
-| @modelcontextprotocol/server-filesystem | File operations | Allowed directories |
-| @modelcontextprotocol/server-github | GitHub API | GITHUB_TOKEN |
-| @modelcontextprotocol/server-memory | Vector storage | None |
-
-## Auto-Install Workflow
-
-When user needs a specific MCP server:
-
-1. Check if already installed: `npm list -g <package>`
-2. If missing, offer to install: `npm install -g <package>`
-3. Provide MCP config snippet to add
-4. Verify installation worked
+- MCP servers provide **TOOLS** to AI agents (execution, access, data)
+- Skills provide **INSTRUCTIONS** (how to use those tools)
+- `stdio` transport = runs locally; `SSE` transport = remote endpoint
+- Many servers require API keys — always check env vars before recommending

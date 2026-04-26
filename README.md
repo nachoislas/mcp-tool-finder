@@ -1,6 +1,6 @@
 # 🤖 Agentic MCP Orchestrator (OpenCode Edition)
 
-> An Autonomous Agent that builds its own tool ecosystem. It doesn't use pre-configured tools — it discovers, installs, and orchestrates them on demand.
+> An Autonomous Agent that builds its own tool ecosystem. Powered by [GSD](https://github.com/gsd-build/get-shit-done) for orchestration.
 
 ---
 
@@ -18,10 +18,10 @@ User: "I need a REST API that connects to my PostgreSQL"
    │ 2. Discover: @modelcontextprotocol/  │
    │              postgres-server          │
    │ 3. Provision: npm install ...       │
-   │ 4. Configure: DATABASE_URL=...      │
-   │ 5. Execute: create the API          │
-   │ 6. Reflect: did it work?           │
-   │ 7. Persist: "Prompt → Tools → OK"    │
+   │ 4. Configure: DATABASE_URL=...       │
+   │ 5. Execute: create the API            │
+   │ 6. Reflect: did it work?             │
+   │ 7. Persist: "Prompt → Tools → OK"     │
    └──────────────────────────────────────┘
 ```
 
@@ -34,6 +34,8 @@ An agent that:
 - **Executes** complex pipelines
 - **Learns** from every success/failure
 
+Powered by GSD (Get Shit Done) for context engineering and orchestration.
+
 ---
 
 ## Architecture
@@ -42,28 +44,60 @@ An agent that:
 ┌─────────────────────────────────────────────────────────┐
 │                    OpenCode Runtime                      │
 │  ┌─────────────────────────────────────────────────┐   │
-│  │           Core Loop (Chain-of-Thought)            │   │
-│  │  Ingest → Planning → Discovery →              │   │
+│  │          GSD Orchestration Layer               │   │
+│  │  /gsd-new-project → /gsd-discuss-phase   │   │
+│  │  /gsd-plan-phase → /gsd-execute-phase  │   │
+│  │  /gsd-verify-work → /gsd-ship        │   │
+│  └─────────────────────────────────────────────────┘   │
+│                         │                             │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │           Core Loop (Chain-of-Thought)           │   │
+│  │  Ingest → Planning → Discovery →               │   │
 │  │  Provisioning → Execution →                   │   │
-│  │  Reflection → Persistence                     │   │
+│  │  Reflection → Persistence                   │   │
 │  └─────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────┘
                           │
          ┌────────────────┼────────────────┐
          ▼                ▼                ▼
    ┌───────────┐   ┌───────────┐   ┌───────────┐
-   │  MCP     │   │ Vector   │   │  Skill   │
-   │ Registry │   │   DB    │   │  Store   │
-   │ (tools)  │   │(pgvector)│   │ (code)   │
+   │  MCP    │   │ Vector   │   │  Skill   │
+   │Registry │   │   DB    │   │  Store   │
+   │ (tools) │   │(pgvector)│   │ (code)   │
    └───────────┘   └───────────┘   └───────────┘
                           │
-                   ┌──────┴──────┐
+                   ���──────┴──────┐
                    ▼             ▼
             ┌──────────┐  ┌──────────┐
-            │ Agent    │  │ Supabase │
-            │ Memory  │  │   Pool   │
+            │  Agent   │  │ Supabase │
+            │  Memory  │  │   Pool   │
             └──────────┘  └──────────┘
 ```
+
+---
+
+## GSD Integration
+
+This project uses [get-shit-done](https://github.com/gsd-build/get-shit-done) as the orchestration backbone:
+
+| GSD Command | Purpose |
+|-------------|---------|
+| `/gsd-new-project` | Initialize project with goals & roadmap |
+| `/gsd-discuss-phase` | Capture implementation decisions |
+| `/gsd-plan-phase` | Research & create atomic task plans |
+| `/gsd-execute-phase` | Run plans in waves with fresh context |
+| `/gsd-verify-work` | Manual UAT verification |
+| `/gsd-ship` | Create PR from verified work |
+| `/gsd-quick` | Ad-hoc tasks without full planning |
+
+### GSD Features Used
+
+- **Multi-agent orchestration** — Parallel researchers, planners, executors
+- **Wave execution** — Independent plans run in parallel
+- **Atomic commits** — Each task gets its own commit
+- **Context engineering** — XML-structured plans with verification
+- **Spiking** — `/gsd-spike` for feasibility experiments
+- **Sketching** — `/gsd-sketch` for UI mockups
 
 ---
 
@@ -103,14 +137,14 @@ Code generated by the agent that becomes permanent:
 
 ---
 
-## Agent Flow (Core Loop)
+## Agent Core Loop
 
 ```python
 async def agent_loop(user_prompt: str):
-    # 1. Ingest
+    # 1. Ingest (via GSD /gsd-new-project)
     goal = parse(user_prompt)
 
-    # 2. Planning
+    # 2. Planning (via GSD /gsd-plan-phase)
     subtasks = decompose(goal)
 
     # 3. Discovery
@@ -123,10 +157,10 @@ async def agent_loop(user_prompt: str):
         await provision(best_tool.install_cmd)
         await configure(best_tool.config)
 
-    # 5. Execution
+    # 5. Execution (via GSD /gsd-execute-phase)
     result = await execute(best_tool, task)
 
-    # 6. Reflection
+    # 6. Reflection (via GSD /gsd-verify-work)
     if result.success:
         await index_memory(goal, tools, result)
     else:
@@ -140,18 +174,71 @@ async def agent_loop(user_prompt: str):
 | Component | Technology |
 |------------|-------------|
 | Runtime | OpenCode |
+| Orchestration | GSD (get-shit-done) |
 | LLMs | Claude 3.5 Sonnet, GPT-4o, Gemini 1.5 Pro |
 | Protocol | Model Context Protocol (MCP) |
 | Vector DB | Supabase (pgvector) |
-| Orchestration | Plan-and-Execute |
+| Workflow | Plan-and-Execute with waves |
+
+---
+
+## Installation
+
+### 1. Install GSD
+
+```bash
+npx get-shit-done-cc@latest
+```
+
+Follow the prompts to install for OpenCode.
+
+### 2. Clone this repo
+
+```bash
+git clone https://github.com/nachoislas/mcp-tool-finder.git
+cd mcp-tool-finder
+```
+
+### 3. Configure MCP Registry
+
+Add your MCP servers to the registry:
+
+```bash
+/gsd-quick "Add new MCP server to registry"
+```
+
+---
+
+## Commands
+
+### MCP Tool Discovery
+
+| Command | Description |
+|---------|-------------|
+| `discover <task>` | Find MCP servers for a task |
+| `install <server>` | Install MCP server |
+| `configure <server>` | Configure env vars |
+| `list` | List installed servers |
+
+### GSD Workflow
+
+| Command | Description |
+|---------|-------------|
+| `/gsd-new-project` | Start new project |
+| `/gsd-discuss-phase 1` | Discuss implementation |
+| `/gsd-plan-phase 1` | Plan phase |
+| `/gsd-execute-phase 1` | Execute plans |
+| `/gsd-verify-work 1` | Verify work |
+| `/gsd-ship 1` | Create PR |
+| `/gsd-quick` | Quick task |
 
 ---
 
 ## Roadmap
 
 ### Phase 1: Core Agent (MVP)
-- [ ] Core loop in OpenCode
-- [ ] Tool-agnostic abstraction layer
+- [x] GSD integration
+- [x] Core loop with GSD orchestration
 - [ ] MCP Registry with pre-loaded top servers
 - [ ] Basic feedback loop (success/error)
 
@@ -176,18 +263,11 @@ async def agent_loop(user_prompt: str):
 
 | Feature | Classic Tool-Finder | Agentic Orchestrator |
 |---------|-------------------|-------------------|
+| Orchestration | Manual | GSD-powered |
 | Tools | Pre-configured | On-demand |
 | Reasoning | None | Chain-of-Thought |
 | Installation | Manual | Automatic |
 | Learning | No | Yes |
-
----
-
-## Installation
-
-```bash
-# TBD — still in design phase
-```
 
 ---
 
@@ -196,12 +276,21 @@ async def agent_loop(user_prompt: str):
 This project evolves quickly. To contribute:
 
 1. Fork the repo
-2. Define a new capability in `mcp_registry`
+2. Add MCP servers to registry
 3. Improve the ranking algorithm
-4. Add tests in `core_loop.test.ts`
+4. Add tests
 
 ---
 
 ## License
 
 MIT
+
+---
+
+## Related
+
+- [get-shit-done](https://github.com/gsd-build/get-shit-done) — GSD orchestration
+- [glama.ai/mcp/servers](https://glama.ai/mcp/servers) — MCP server catalog
+- [awesome-mcp-servers](https://github.com/punkpeye/awesome-mcp-servers) — Community MCP servers
+- [Model Context Protocol](https://modelcontextprotocol.io) — MCP specification

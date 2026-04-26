@@ -236,26 +236,59 @@ Add your MCP servers to the registry:
 
 ## Roadmap
 
-### Phase 1: Core Agent (MVP)
+### Phase 1: Core Agent (MVP) — In Progress
 - [x] GSD integration
 - [x] Core loop with GSD orchestration
+- [x] mcp-auto-install — Auto-install MCP servers
+- [x] error-recoverer — Error diagnosis & recovery
+- [x] context-manager — Context optimization
+- [x] tool-discoverer — Tool search by capability
 - [ ] MCP Registry with pre-loaded top servers
 - [ ] Basic feedback loop (success/error)
 
 ### Phase 2: Discovery Engine
-- [ ] Semantic search with embeddings
-- [ ] History-based ranker
-- [ ] Automatic tool comparison
+- [ ] semantic-search — Vector search with embeddings
+- [ ] history-ranker — Rank based on execution history
+- [ ] tool-comparison — Auto-compare tool options
+- [ ] capability-tagger — Auto-tag tools with capabilities
 
 ### Phase 3: Auto-Provisioning
-- [ ] NPM auto-install cycle
-- [ ] Automatic env vars configuration
-- [ ] Docker/Python provisioners
+- [ ] npm-provisioner — Auto npm install
+- [ ] docker-provisioner — Docker container provisioner
+- [ ] python-provisioner — Python venv/pip provisioner
+- [ ] env-manager — Env var configuration
 
 ### Phase 4: Learning
-- [ ] Agent memory indexing
-- [ ] Skill store with generated code
-- [ ] Success rate tracking
+- [ ] agent-memory — Persistent execution memory
+- [ ] skill-store — Store generated code snippets
+- [ ] success-tracker — Track success rates
+- [ ] pattern-learner — Learn from past successes
+
+### Phase 5: Quality Gates
+- [ ] code-reviewer — AI peer code review
+- [ ] security-scan — Vulnerability scanning
+- [ ] test-generator — Auto-generate tests
+- [ ] performance-profiler — Performance analysis
+
+### Phase 6: Advanced
+- [ ] multi-agent-spawner — Spawn specialized agents
+- [ ] web-searcher — Search for solutions
+- [ ] documentation-gen — Auto-generate docs
+- [ ] changelog-gen — Auto-generate changelogs
+
+---
+
+## Skills Reference
+
+| Skill | Status | Purpose |
+|-------|--------|---------|
+| **mcp-auto-install** | ✅ | Install/configure MCP servers |
+| **error-recoverer** | ✅ | Auto-fix execution errors |
+| **context-manager** | ✅ | Optimize context window |
+| **tool-discoverer** | ✅ | Search tools by capability |
+| **mcp-finder** | ✅ | Search MCP ecosystem |
+| **skill-finder** | ✅ | Search agent skills |
+| **tool-selector** | ✅ | Orchestrate tool discovery |
 
 ---
 

@@ -1,160 +1,207 @@
-# 🔍 MCP Tool Finder
+# 🤖 Agentic MCP Orchestrator (OpenCode Edition)
 
-> A collection of Claude Code skills to help AI agents discover, install, and configure the right tools for any task — covering both agent skills and MCP servers.
-
----
-
-## What is this?
-
-When building AI agent workflows, two questions always come up:
-
-1. **"What skills exist for X?"** — Agent skills provide *instructions* (how to think, plan, and act for a task)
-2. **"What MCP server do I need for X?"** — MCP servers provide *tools* (browser access, databases, file systems, APIs)
-
-This repo contains three Claude Code skills that answer both questions instantly:
-
-| Skill | What it does |
-|-------|-------------|
-| [`skill-finder`](./skill-finder/) | Search the public skills catalog via `npx skills` |
-| [`mcp-finder`](./mcp-finder/) | Search the MCP server ecosystem via glama.ai and awesome-mcp-servers |
-| [`tool-selector`](./tool-selector/) | Orchestrator — run both and deliver a combined recommendation |
+> Un Agente Autónomo que construye su propio ecosistema de herramientas. No usa herramientas pre-configuradas — las descubre, instala y orchestra bajo demanda.
 
 ---
 
-## Quick Start
+## Problema
 
-### Install all three skills globally
-
-```bash
-npx skills add nachoislas/mcp-tool-finder@skill-finder -g -y
-npx skills add nachoislas/mcp-tool-finder@mcp-finder -g -y
-npx skills add nachoislas/mcp-tool-finder@tool-selector -g -y
-```
-
-### Use them
-
-Just ask your AI agent:
-
-- *"Find me a skill for React testing"*
-- *"What MCP server do I need to access PostgreSQL?"*
-- *"I need to build a GitHub automation bot — what tools exist?"*
-
-The skills handle the discovery, ranking, and install commands for you.
-
----
-
-## How it Works
+Los agentes LLM actuales dependen de herramientas pre-configuradas. Si la herramienta no existe, el agente fracasa. Este proyecto cambia el paradigma:
 
 ```
-User: "I need to build a browser scraper"
+Usuario: " necesito una API REST que conecte a mi PostgreSQL"
          │
          ▼
-   tool-selector
+   Agente Autónomo
    ┌──────────────────────────────────────┐
-   │ 1. Check domain-pairs reference      │  ← fast path (no search needed)
-   │ 2. Run skill-finder → web-scraper    │
-   │ 3. Run mcp-finder → puppeteer        │
-   │ 4. Combine + rank results            │
-   │ 5. Present: skill + MCP + install    │
+   │ 1. Razono qué necesito: DB + API    │
+   │ 2. Descubro: @modelcontextprotocol/   │
+   │             postgres-server         │
+   │ 3. Provisiono: npm install ...        │
+   │ 4. Configuro: DATABASE_URL=...       │
+   │ 5. Ejecuto: creo la API               │
+   │ 6. Reflecciono: funcionó?            │
+   │ 7. Persisto: "Prompt → Tools → OK"     │
    └──────────────────────────────────────┘
 ```
 
-Each skill has a **fast-path reference file** (curated top picks by domain) so common requests return instantly without network calls.
+## Visión
+
+Un agente que:
+- **Razonas** sobre qué herramientas necesita para cada tarea
+- **Descubres** herramientas en el ecosistema MCP
+- **Provisionas** (instalas/configuras) dinámicamente
+- **Ejecutas** pipelines complejos
+- **Aprendes** de cada éxito/fallo
 
 ---
 
-## Project Structure
+## Arquitectura
 
 ```
-mcp-tool-finder/
-├── skill-finder/
-│   ├── SKILL.md                    # Core skill instructions
-│   └── reference/
-│       └── top-skills.md           # Curated skills by domain
-├── mcp-finder/
-│   ├── SKILL.md
-│   └── reference/
-│       └── top-servers.md          # Curated MCP servers by domain
-└── tool-selector/
-    ├── SKILL.md
-    └── reference/
-        └── domain-pairs.md         # Domain → skill + MCP pairs table
+┌─────────────────────────────────────────────────────────┐
+│                    OpenCode Runtime                      │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │           Core Loop (Chain-of-Thought)            │   │
+│  │  Ingesta → Planificación → Discovery →        │   │
+│  │  Provisionamiento → Ejecución →              │   │
+│  │  Reflexión → Persistencia                    │   │
+│  └─────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────┘
+                          │
+         ┌────────────────┼────────────────┐
+         ▼                ▼                ▼
+   ┌───────────┐   ┌───────────┐   ┌───────────┐
+   │  MCP     │   │ Vector   │   │  Skill   │
+   │ Registry │   │   DB    │   │  Store   │
+   │ (tools)  │   │(pgvector)│   │ (code)   │
+   └───────────┘   └───────────┘   └───────────┘
+                          │
+                   ┌──────┴──────┐
+                   ▼             ▼
+            ┌──────────┐  ┌──────────┐
+            │ Agent    │  │ Supabase │
+            │ Memory  │  │   Pool   │
+            └──────────┘  └──────────┘
+```
+
+---
+
+## Componentes
+
+### 1. mcp_registry
+Catálogo de servidores MCP disponibles con metadata:
+
+| Campo | Descripción |
+|-------|-------------|
+| `name` | Nombre del package |
+| `capabilities` | Qué puede hacer (db, api, filesystem...) |
+| `install_cmd` | Comando de instalación |
+| `config_schema` | Variables requeridas |
+| `rank` | Score basdo en uso/éxito |
+
+### 2. agent_memory
+Historial de ejecuciones:
+
+| Campo | Descripción |
+|-------|-------------|
+| `prompt` | Input original |
+| `tools_used` | MCPs instalados |
+| `result` | éxito/error |
+| `duration` | Tiempo de ejecución |
+| `tokens_spent` | Costo en tokens |
+
+### 3. skill_store
+Código generado por el agente que se vuelve permanente:
+
+| Campo | Descripción |
+|-------|-------------|
+| `name` | Nombre del skill |
+| `code` | Código (Python/JS) |
+| `trigger` | Cuándo ejecutarlo |
+| `success_rate` | % de veces que funcionó |
+
+---
+
+## Flujo del Agente (Core Loop)
+
+```python
+async def agent_loop(user_prompt: str):
+    # 1. Ingesta
+    goal = parse(user_prompt)
+
+    # 2. Planificación
+    subtasks = decompose(goal)
+
+    # 3. Discovery
+    for task in subtasks:
+        tools = search_mcp_registry(task, vector_db)
+        best_tool = rank(tools).first
+
+    # 4. Provisionamiento
+    if not installed(best_tool):
+        await provision(best_tool.install_cmd)
+        await configure(best_tool.config)
+
+    # 5. Ejecución
+    result = await execute(best_tool, task)
+
+    # 6. Reflexión
+    if result.success:
+        await index_memory(goal, tools, result)
+    else:
+        await retry_with_different_tool(task)
+```
+
+---
+
+## Stack
+
+| Componente | Tecnología |
+|------------|-------------|
+| Runtime | OpenCode |
+| LLMs | Claude 3.5 Sonnet, GPT-4o, Gemini 1.5 Pro |
+| Protocolo | Model Context Protocol (MCP) |
+| Vector DB | Supabase (pgvector) |
+| Orquestación | Plan-and-Execute |
+
+---
+
+## Roadmap
+
+### Phase 1: Core Agent (MVP)
+- [ ] Core loop básico en OpenCode
+- [ ] tool-agnostic abstraction layer
+- [ ] MCP Registry con top-servers pre-cargados
+- [ ] Feedback loop básico (éxito/error)
+
+### Phase 2: Discovery Engine
+- [ ] Búsqueda semántica con embeddings
+- [ ] Ranker basado en historial
+- [ ] Tool comparison automático
+
+### Phase 3: Auto-Provisioning
+- [ ] Ciclo de autoinstalación npm
+- [ ] Configuración automática de env vars
+- [ ] Docker/Python provisioners
+
+### Phase 4: Learning
+- [ ] Agent memory indexing
+- [ ] Skill store con código generado
+- [ ] Success rate tracking
+
+---
+
+## Comparación
+
+| Característica | Tool-Finder clásico | Agentic Orchestrator |
+|----------------|-------------------|-------------------|
+| Herramientas | Pre-configuradas | Bajo demanda |
+| Razonamiento | None | Chain-of-Thought |
+| Instalación | Manual | Automática |
+| Aprendizaje | No | Sí |
+
+---
+
+## Instalación
+
+```bash
+# Por definir — aún en diseño
 ```
 
 ---
 
 ## Contributing
 
-**This project thrives on community contributions.** The curated reference files are only as good as the community keeps them — outdated packages, missing domains, and wrong env vars hurt everyone.
+Este proyecto evoluciona rápidamente. Para contribuir:
 
-### Ways to contribute
-
-#### 🗂️ Update reference files (easiest)
-
-The most impactful contributions are keeping the reference tables accurate:
-
-- Add a new domain or use-case to [`tool-selector/reference/domain-pairs.md`](./tool-selector/reference/domain-pairs.md)
-- Add a top skill to [`skill-finder/reference/top-skills.md`](./skill-finder/reference/top-skills.md)
-- Add/fix an MCP server in [`mcp-finder/reference/top-servers.md`](./mcp-finder/reference/top-servers.md)
-
-#### 🐛 Fix stale data
-
-- Deprecated npm packages
-- Wrong env var names
-- Broken install commands
-- Outdated skill names
-
-#### 💡 Improve the skills
-
-- Stronger trigger descriptions (so Claude picks the right skill)
-- Better fallback strategies
-- New workflow steps
-- More complete "When NOT to Use" guidance
-
-#### 🌐 Add new domains
-
-Missing a domain entirely? Add the full row to `domain-pairs.md`:
-
-```markdown
-| Task | Skill | MCP Server | Install |
-|------|-------|-----------|---------|
-| Your task | `skill-name` | `@scope/mcp-package` | install commands |
-```
-
-### How to submit
-
-1. Fork the repo
-2. Make your changes
-3. Open a PR with a short description of what you changed and why
-4. A maintainer will review within a few days
-
-### Good first issues
-
-Look for issues tagged `good first issue` — these are usually:
-- Adding a missing domain to the reference tables
-- Verifying that listed packages still exist on npm
-- Fixing typos or unclear descriptions
+1. Fork del repo
+2. Define un nuevo capability en `mcp_registry`
+3. Mejora el ranking algorithm
+4. Añade tests en `core_loop.test.ts`
 
 ---
 
-## Design Philosophy
+## Licencia
 
-- **Fast path first** — curated reference files beat network search for common cases
-- **Fallback always** — if search fails, there's always a next step
-- **Verification included** — install recommendations always come with a verify command
-- **Skills + MCP together** — most real workflows need both; this repo treats them as a pair
-
----
-
-## License
-
-MIT — see [LICENSE](./LICENSE) if present.
-
----
-
-## Related
-
-- [skills.sh](https://skills.sh) — Browse the full agent skills ecosystem
-- [glama.ai/mcp/servers](https://glama.ai/mcp/servers) — Browse the full MCP server catalog
-- [awesome-mcp-servers](https://github.com/punkpeye/awesome-mcp-servers) — Community MCP server list
-- [Model Context Protocol](https://modelcontextprotocol.io) — MCP specification
+MIT

@@ -247,27 +247,29 @@ Add your MCP servers to the registry:
 - [ ] Basic feedback loop (success/error)
 
 ### Phase 2: Discovery Engine
-- [ ] semantic-search — Vector search with embeddings
+- [x] capability-tagger — Auto-tag tools with capabilities
+- [x] tool-discoverer — Search tools by capability
+- [x] semantic-search — Vector search with embeddings
 - [ ] history-ranker — Rank based on execution history
 - [ ] tool-comparison — Auto-compare tool options
-- [ ] capability-tagger — Auto-tag tools with capabilities
 
 ### Phase 3: Auto-Provisioning
-- [ ] npm-provisioner — Auto npm install
+- [x] mcp-auto-install — Auto npm install
+- [x] env-manager — Env var configuration
+- [x] mcp-database — Database connectors
 - [ ] docker-provisioner — Docker container provisioner
 - [ ] python-provisioner — Python venv/pip provisioner
-- [ ] env-manager — Env var configuration
 
 ### Phase 4: Learning
+- [x] success-tracker — Track success rates
 - [ ] agent-memory — Persistent execution memory
 - [ ] skill-store — Store generated code snippets
-- [ ] success-tracker — Track success rates
 - [ ] pattern-learner — Learn from past successes
 
 ### Phase 5: Quality Gates
+- [x] test-generator — Auto-generate tests
 - [ ] code-reviewer — AI peer code review
 - [ ] security-scan — Vulnerability scanning
-- [ ] test-generator — Auto-generate tests
 - [ ] performance-profiler — Performance analysis
 
 ### Phase 6: Advanced
@@ -286,9 +288,16 @@ Add your MCP servers to the registry:
 | **error-recoverer** | ✅ | Auto-fix execution errors |
 | **context-manager** | ✅ | Optimize context window |
 | **tool-discoverer** | ✅ | Search tools by capability |
+| **caveman** | ✅ | Ultra-compressed communication |
 | **mcp-finder** | ✅ | Search MCP ecosystem |
 | **skill-finder** | ✅ | Search agent skills |
 | **tool-selector** | ✅ | Orchestrate tool discovery |
+| **mcp-database** | ✅ | Database connector (PG/MySQL/SQLite) |
+| **semantic-search** | ✅ | Vector search with embeddings |
+| **success-tracker** | ✅ | Track execution success rates |
+| **env-manager** | ✅ | Manage env vars securely |
+| **test-generator** | ✅ | Auto-generate tests |
+| **capability-tagger** | ✅ | Auto-tag tools with capabilities |
 
 ---
 
